@@ -2,12 +2,11 @@
   "name": "styled-functors",
   "namespace": true,
   "reason": {
-    "react-jsx": 2
+    "react-jsx": 3
   },
-  "bs-dependencies": ["bs-react-native", "reason-react"],
+  "bs-dependencies": ["reason-react-native", "reason-react"],
   "bs-dev-dependencies": ["@glennsl/bs-jest"],
   "bsc-flags": ["-bs-super-errors"],
-  "refmt": 3,
   "sources": [
     {
       "dir": "re"

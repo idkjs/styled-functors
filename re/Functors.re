@@ -1,4 +1,4 @@
-open BsReactNative;
+open ReactNative;
 
 let get = (arg, default) =>
   switch (arg) {
@@ -15,10 +15,16 @@ module type BoxConfig = {
 
 module BoxView = (Config: BoxConfig) => {
   let make =
-      (~p=?, ~m=?, ~bgColor=?, ~style as additionalStyle=Style.(style([]))) =>
-    View.make(
-      ~style=Style.combine(Config.style(p, m, bgColor), additionalStyle),
-    );
+      (~p=?, ~m=?, ~bgColor=?, ~style as additionalStyle=Style.(style()),()) => {
+    <View
+      style=Style.(
+        arrayOption([|
+          Some(Config.style(p, m, bgColor)),
+          Some(additionalStyle),
+        |])
+      )
+    />;
+  };
 };
 
 module type FlexConfig = {
@@ -47,15 +53,16 @@ module FlexView = (Config: FlexConfig) => {
         ~content=?,
         ~grow=?,
         ~bgColor=?,
-        ~style as additionalStyle=Style.(style([])),
+        ~style as additionalStyle=Style.(style()),(),
       ) =>
-    View.make(
-      ~style=
-        Style.combine(
-          Config.style(p, m, content, direction, grow, bgColor),
-          additionalStyle,
-        ),
-    );
+    <View
+      style=Style.(
+        arrayOption([|
+          Some(Config.style(p, m, content, direction, grow, bgColor)),
+          Some(additionalStyle),
+        |])
+      )
+    />;
 };
 
 module type TextConfig = {
@@ -68,7 +75,7 @@ module type TextConfig = {
       option(marginType),
       option(fontType),
       option(string),
-      option(bool),
+      option(bool)
     ) =>
     Style.t;
 };
@@ -81,13 +88,14 @@ module Text = (Config: TextConfig) => {
         ~f=?,
         ~color=?,
         ~center=?,
-        ~style as additionalStyle=Style.(style([])),
+        ~style as additionalStyle=Style.(style()),(),
       ) =>
-    Text.make(
-      ~style=
-        Style.combine(
-          Config.style(p, m, f, color, center),
-          additionalStyle,
-        ),
-    );
+    <Text
+      style=Style.(
+        arrayOption([|
+          Some(Config.style(p, m, f, color, center)),
+          Some(additionalStyle),
+        |])
+      )
+    />;
 };

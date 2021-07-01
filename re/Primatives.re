@@ -1,39 +1,60 @@
-open BsReactNative.Style;
-open BsReactNative.Platform;
+open ReactNative;
+open Style;
+// open ReactNative.Platform;
 
 [@bs.module "react-native-responsive-fontsize"]
 external rf: float => float = "default";
-
+type platform =
+  | IOS
+  | Android
+  | Web;
+let platform =
+  if (Platform.os == Platform.ios) {
+    IOS;
+  } else if (Platform.os == Platform.web) {
+    Web;
+  } else {
+    Android;
+  };
 let isWeb = () => {
-  switch (os()) {
+  switch (platform) {
   | Android => false
-  | IOS(_) => false
-  | exception (UnknownPlatform(_string)) => true
+  | IOS => false
+  | Web => true
   };
 };
 
 module Box =
   Functors.BoxView({
     type paddingType = [ | `p(float) | `px(float) | `py(float)];
+    type declaration = [ | `declaration(string, string)];
     type marginType = [
       | `mt(float)
       | `mb(float)
       | `mr(float)
       | `ml(float)
     ];
-    let baseStyle = [] /*display(Flex)  hmmmm   */;
+    let d = (property, value) => `declaration((property, value));
+    let unsafe = d;
+    let baseStyle = style() /*display(Flex)  hmmmm   */;
     let getPaddStyle = spaceType =>
       switch (spaceType) {
-      | `p(p) => [padding(Pct(p))]
-      | `px(p) => [paddingRight(Pct(p)), paddingLeft(Pct(p))]
-      | `py(p) => [paddingTop(Pct(p)), paddingBottom(Pct(p))]
+      | `p(p) => [unsafe("padding", pct(p))]
+      | `px(p) => [
+          unsafe("paddingRight", pct(p)),
+          unsafe("paddingLeft", pct(p)),
+        ]
+      | `py(p) => [
+          unsafe("paddingTop", pct(p)),
+          unsafe("paddingBottom", pct(p)),
+        ]
       };
     let getMargStyle = marginType =>
       switch (marginType) {
-      | `mt(m) => [marginTop(Pct(m))]
-      | `mb(m) => [marginBottom(Pct(m))]
-      | `mr(m) => [marginRight(Pct(m))]
-      | `ml(m) => [marginLeft(Pct(m))]
+      | `mt(m) => unsafe("marginTop", pct(m))
+      | `mb(m) => unsafe("marginBottom", pct(m))
+      | `mr(m) => unsafe("marginRight", pct(m))
+      | `ml(m) => unsafe("marginLeft", pct(m))
       };
     let paddingStyle = spaceType =>
       switch (spaceType) {
@@ -47,10 +68,18 @@ module Box =
       };
     let bgColorStyle = bg =>
       switch (bg) {
-      | Some(bg) => [backgroundColor(String(bg))]
+      | Some(bg) => [unsafe("backgroundColor", bg)]
       | None => []
       };
-    let style = (paddingType, marginType, bgColor) =>
+    let style = (paddingType, marginType, bgColor) =>{
+// open Style;
+  StyleSheet.create({
+    // style may be defined inline
+    "marginStyle": style(~margin=marginStyle(marginType), ()),
+    "paddingStyle": style(~padding=paddingStyle(paddingType), ()),
+    // or already defined elsewhere
+    "backgroundColore": bgColorStyle(bgColor)
+  })
       style(
         List.append(
           List.flatten([
@@ -60,7 +89,7 @@ module Box =
           ]),
           baseStyle,
         ),
-      );
+      )};
   });
 
 module Flex =
@@ -93,16 +122,16 @@ module Flex =
       };
     let getPaddStyle = spaceType =>
       switch (spaceType) {
-      | `p(p) => [padding(Pct(p))]
-      | `px(p) => [paddingRight(Pct(p)), paddingLeft(Pct(p))]
-      | `py(p) => [paddingTop(Pct(p)), paddingBottom(Pct(p))]
+      | `p(p) => [padding(pct(p))]
+      | `px(p) => [paddingRight(pct(p)), paddingLeft(pct(p))]
+      | `py(p) => [paddingTop(pct(p)), paddingBottom(pct(p))]
       };
     let getMargStyle = marginType =>
       switch (marginType) {
-      | `mt(m) => [marginTop(Pct(m))]
-      | `mb(m) => [marginBottom(Pct(m))]
-      | `mr(m) => [marginRight(Pct(m))]
-      | `ml(m) => [marginLeft(Pct(m))]
+      | `mt(m) => [marginTop(pct(m))]
+      | `mb(m) => [marginBottom(pct(m))]
+      | `mr(m) => [marginRight(pct(m))]
+      | `ml(m) => [marginLeft(pct(m))]
       };
     let getDirStyle = directionType =>
       switch (directionType) {
@@ -169,22 +198,22 @@ module T =
     let baseStyle = [] /*display(Flex)  hmmmm   */;
     let getPaddStyle = spaceType =>
       switch (spaceType) {
-      | `p(p) => [padding(Pct(p))]
-      | `px(p) => [paddingRight(Pct(p)), paddingLeft(Pct(p))]
-      | `py(p) => [paddingTop(Pct(p)), paddingBottom(Pct(p))]
+      | `p(p) => [padding(pct(p))]
+      | `px(p) => [paddingRight(pct(p)), paddingLeft(pct(p))]
+      | `py(p) => [paddingTop(pct(p)), paddingBottom(pct(p))]
       };
     let getMargStyle = marginType =>
       switch (marginType) {
-      | `mt(m) => [marginTop(Pct(m))]
-      | `mb(m) => [marginBottom(Pct(m))]
-      | `mr(m) => [marginRight(Pct(m))]
-      | `ml(m) => [marginLeft(Pct(m))]
+      | `mt(m) => [marginTop(pct(m))]
+      | `mb(m) => [marginBottom(pct(m))]
+      | `mr(m) => [marginRight(pct(m))]
+      | `ml(m) => [marginLeft(pct(m))]
       };
     let getFontStyle = fontType =>
       /* These hardcoded values say for (rn-) web, just default to an iPad height */
       /* Def not the best way to do this, but I'm tired. */
       switch (fontType) {
-      | `size(s) => [fontSize(Float(isWeb() ? ((s *. 1024.) /. 100.) : rf(s)))]
+      | `size(s) => [fontSize(Float(isWeb() ? s *. 1024. /. 100. : rf(s)))]
       };
     let paddingStyle = spaceType =>
       switch (spaceType) {
